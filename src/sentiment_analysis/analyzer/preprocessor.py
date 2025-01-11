@@ -13,26 +13,31 @@ class TextPreprocessor:
         all_stopwords = set(stopwords.words('portuguese'))
         self.stop_words = all_stopwords - {
             'não', 'nao', 'muito', 'mais', 'menos', 
-            'pouco', 'mas', 'sem', 'com'
+            'pouco', 'mas', 'sem', 'bom', 'bem'
         }
         
         self.tokenizer = RegexpTokenizer(r'\w+')
     
     def normalize_text(self, text: str) -> str:
-        """Remove accents and convert to lowercase."""
+        """Remove accents, punctuation and convert to lowercase."""
         if pd.isna(text) or not isinstance(text, str):
             return ""
-            
+        
         text = text.lower().strip()
         
         text = unicodedata.normalize('NFKD', text)
         text = ''.join(c for c in text if not unicodedata.combining(c))
         
+        text = re.sub(r'[^\w\s]', '', text)
+        
+        text = ' '.join(text.split())
+        
         return text
     
     def get_ngrams(self, text: str) -> dict:
         """Generate n-grams from normalized text."""
-        words = self.tokenizer.tokenize(text.lower())
+        normalized = self.normalize_text(text)
+        words = normalized.split()
         
         bigrams = [' '.join(words[i:i+2]) for i in range(len(words)-1)]
         trigrams = [' '.join(words[i:i+3]) for i in range(len(words)-2)]
@@ -46,9 +51,9 @@ class TextPreprocessor:
         """Preprocess text with improved token and phrase handling."""
         normalized_text = self.normalize_text(text)
         
-        ngrams = self.get_ngrams(normalized_text)
+        ngrams = self.get_ngrams(text)
         
-        tokens = self.tokenizer.tokenize(normalized_text)
+        tokens = normalized_text.split()
         
         processed_tokens = []
         i = 0
@@ -58,7 +63,7 @@ class TextPreprocessor:
             if token in {'nao', 'não'}:
                 if i + 1 < len(tokens):
                     next_token = tokens[i+1]
-                    if next_token not in self.stop_words:
+                    if next_token not in self.stop_words or next_token in {'bom', 'bem'}:
                         stemmed = self.stemmer.stem(next_token)
                         processed_tokens.append(f"NOT_{stemmed}")
                         i += 2
