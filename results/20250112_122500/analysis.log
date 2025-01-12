@@ -1,0 +1,10 @@
+2025-01-12 12:25:00,359 - INFO - Step: Starting analysis
+2025-01-12 12:25:00,359 - INFO - Step: Loading data
+2025-01-12 12:25:00,379 - INFO - Step: Validating data
+2025-01-12 12:25:00,379 - INFO - Step: Creating features
+2025-01-12 12:25:00,449 - INFO - Step: Performing clustering
+2025-01-12 12:25:01,822 - INFO - Step: Calculating risk scores
+2025-01-12 12:25:01,846 - INFO - Step: Generating personas
+2025-01-12 12:25:01,892 - INFO - Step: Creating visualizations
+2025-01-12 12:25:04,194 - INFO - Step: Exporting results
+2025-01-12 12:25:04,244 - INFO - Step: Analysis completed successfully

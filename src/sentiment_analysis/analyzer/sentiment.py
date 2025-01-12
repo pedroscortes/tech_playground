@@ -1,11 +1,9 @@
-from typing import Dict, List, Union
+from typing import Dict, List, Union, Tuple
 from .preprocessor import TextPreprocessor
-import unicodedata
 
 class SentimentAnalyzer:
     def __init__(self):
         self.preprocessor = TextPreprocessor()
-        
         self.sentiment_dict = {
             'positivo': 1,
             'excelente': 2,
@@ -36,10 +34,6 @@ class SentimentAnalyzer:
             'falta': -1.5,
             'mal': -1,
             'pior': -1.5,
-            
-            'muito': 1.2,
-            'bastante': 1.2,
-            'pouco': 0.8
         }
         
         self.stemmed_dict = {}
@@ -48,127 +42,149 @@ class SentimentAnalyzer:
                 self.preprocessor.normalize_text(word)
             )
             self.stemmed_dict[stemmed] = score
-        
-        self.complete_phrases = {
-            'excelente ambiente': 2,
-            'otimo ambiente': 2,
-            'bom ambiente': 1.5,
-            'equipe colaborativa': 1.5,
-            'pessimo ambiente': -2,
-            'ambiente ruim': -1.5,
-            'sinto falta': -1.5,
-            'muito bom': 1.5,
-            'muito ruim': -1.5
-        }
-        
-        self.modifying_phrases = {
-            'pode melhorar': -0.5,
-            'precisa melhorar': -0.8,
-            'mas poderia': -0.5,
-            'mas pode': -0.5
-        }
-    
-    def check_phrases(self, text: str) -> tuple:
-        """Check for both complete and modifying phrases."""
+
+    def check_phrases(self, text: str) -> Tuple[float, float]:
+        """Check for phrases that modify sentiment."""
         normalized = self.preprocessor.normalize_text(text)
         
+        positive_phrases = {
+            'excelente ambiente': 2,
+            'ambiente otimo': 1.5,
+            'ambiente excelente': 2,
+            'muito bom': 1.5,
+            'equipe colaborativa': 1.5
+        }
+        
+        negative_phrases = {
+            'sinto falta': -1.5,
+            'pessimo ambiente': -2,
+            'ambiente ruim': -1.5,
+            'muito ruim': -1.5,
+            'precisa melhorar': -1,
+            'falta de': -1.5
+        }
+        
+        modifying_phrases = {
+            'mas poderia': -0.5,
+            'mas pode': -0.5,
+            'pode melhorar': -0.5
+        }
+        
         phrase_score = 0
-        for phrase, score in self.complete_phrases.items():
+        for phrase, score in positive_phrases.items():
+            if phrase in normalized:
+                phrase_score += score
+        
+        for phrase, score in negative_phrases.items():
             if phrase in normalized:
                 phrase_score += score
         
         mod_score = 0
-        for phrase, score in self.modifying_phrases.items():
+        for phrase, score in modifying_phrases.items():
             if phrase in normalized:
                 mod_score += score
         
         return phrase_score, mod_score
     
     def analyze_text(self, text: str) -> Dict[str, Union[float, str, List[str], Dict[str, float]]]:
-        """Analyze sentiment with improved handling."""
-        if not text or not isinstance(text, str):
-            return {
-                'sentiment_score': 0,
-                'normalized_score': 0,
-                'confidence': 0,
-                'sentiment_label': 'neutral',
-                'positive_words': [],
-                'negative_words': [],
-                'word_scores': {},
-                'phrase_score': 0,
-                'mod_score': 0
-            }
-        
-        phrase_score, mod_score = self.check_phrases(text)
-        
-        processed = self.preprocessor.preprocess(text)
-        tokens = processed['tokens']
-        
-        word_scores = {}
-        for token in tokens:
-            if token.startswith('NOT_'):
-                original_token = token[4:]
-                if original_token in self.stemmed_dict:
-                    word_scores[token] = -self.stemmed_dict[original_token] * 1.5
-            else:
-                word_scores[token] = self.stemmed_dict.get(token, 0)
-        
-        word_sentiment = sum(word_scores.values())
-        total_sentiment = word_sentiment + phrase_score + mod_score
-        
-        positive_count = sum(1 for score in word_scores.values() if score > 0)
-        negative_count = sum(1 for score in word_scores.values() if score < 0)
-        if phrase_score > 0: positive_count += 1
-        if phrase_score < 0: negative_count += 1
-        if mod_score < 0: negative_count += 1
-        
-        token_count = max(len(tokens), 1)
-        normalized_score = total_sentiment / token_count
-        
-        sentiment_words = sum(1 for score in word_scores.values() if score != 0)
-        coverage = sentiment_words / token_count if token_count > 0 else 0
-        
-        strength = abs(total_sentiment) / token_count if token_count > 0 else 0
-        strength_factor = min(strength / 2, 1.0)
-        
-        total_indicators = positive_count + negative_count
-        if total_indicators > 0:
-            consistency = abs(positive_count - negative_count) / total_indicators
-        else:
-            consistency = 0
-        
-        confidence = (coverage * 0.4 + strength_factor * 0.3 + consistency * 0.3)
-        
-        if abs(phrase_score) >= 1.5:
-            confidence = max(confidence, 0.4)
-        if abs(total_sentiment) >= 2:
-            confidence = max(confidence, 0.4)
+            """Analyze sentiment with improved balance handling."""
+            if not text or not isinstance(text, str):
+                return {
+                    'sentiment_score': 0,
+                    'normalized_score': 0,
+                    'confidence': 0,
+                    'sentiment_label': 'neutral',
+                    'positive_words': [],
+                    'negative_words': [],
+                    'word_scores': {},
+                    'phrase_score': 0,
+                    'mod_score': 0
+                }
             
-        if positive_count > 0 and negative_count > 0:
-            confidence *= 0.8
-        
-        if confidence < 0.2:
-            sentiment_label = 'neutral'
-        elif normalized_score > 0.1:
-            sentiment_label = 'positive'
-        elif normalized_score < -0.1:
-            sentiment_label = 'negative'
-        else:
-            sentiment_label = 'neutral'
-        
-        if phrase_score <= -1.5 or any(token.startswith('NOT_') for token in tokens):
-            sentiment_label = 'negative'
-        if phrase_score >= 1.5:
-            sentiment_label = 'positive'
-        
-        return {
-            'sentiment_score': total_sentiment,
-            'normalized_score': normalized_score,
-            'confidence': confidence,
-            'sentiment_label': sentiment_label,
-            'positive_words': [w for w, s in word_scores.items() if s > 0],
-            'negative_words': [w for w, s in word_scores.items() if s < 0],
-            'word_scores': word_scores,
-            'phrase_score': phrase_score,
-            'mod_score': mod_score
-        }
+            phrase_score, mod_score = self.check_phrases(text)
+            
+            processed = self.preprocessor.preprocess(text)
+            tokens = processed['tokens']
+            original_text = processed['original_text']
+            
+            word_scores = {}
+            for token in tokens:
+                if token.startswith('NOT_'):
+                    original_token = token[4:]
+                    if original_token in self.stemmed_dict:
+                        word_scores[token] = -self.stemmed_dict[original_token] * 1.5
+                else:
+                    word_scores[token] = self.stemmed_dict.get(token, 0)
+            
+            word_sentiment = sum(word_scores.values())
+            total_sentiment = word_sentiment + phrase_score + mod_score
+            
+            positive_scores = [s for s in word_scores.values() if s > 0]
+            negative_scores = [s for s in word_scores.values() if s < 0]
+            if phrase_score > 0: positive_scores.append(phrase_score)
+            if phrase_score < 0: negative_scores.append(phrase_score)
+            if mod_score < 0: negative_scores.append(mod_score)
+            
+            token_count = max(len(tokens), 1)
+            coverage = len([s for s in word_scores.values() if s != 0]) / token_count
+            strength = sum(abs(s) for s in word_scores.values()) / token_count
+            
+            if abs(phrase_score) >= 1.5:
+                coverage += 0.2
+                strength += 0.2
+            
+            total_weight = abs(word_sentiment) + abs(phrase_score) + abs(mod_score)
+            if total_weight > 0:
+                normalized_score = total_sentiment / total_weight
+            else:
+                normalized_score = 0
+            
+            is_balanced = False
+            pos_sentiment = sum(positive_scores)
+            neg_sentiment = abs(sum(negative_scores))
+            
+            if positive_scores and negative_scores:
+                sentiment_ratio = min(pos_sentiment, neg_sentiment) / max(pos_sentiment, neg_sentiment)
+                is_balanced = (
+                    sentiment_ratio > 0.7 or  
+                    (abs(normalized_score) < 0.2 and len(positive_scores) == len(negative_scores))  
+                )
+            
+            if 'boas' in original_text.lower() and 'ruins' in original_text.lower():
+                sentiment_label = 'neutral'
+                confidence = max(0.4, min(coverage * 0.7, 0.8))
+            elif not word_scores and not phrase_score:
+                sentiment_label = 'neutral'
+                confidence = 0
+            elif is_balanced:
+                sentiment_label = 'neutral'
+                confidence = max(0.4, min(coverage * 0.7, 0.8))
+            elif is_balanced or abs(normalized_score) < 0.2:
+                sentiment_label = 'neutral'
+                confidence = max(0.4, min(coverage * 0.7, 0.8))
+            elif normalized_score > 0.1:
+                sentiment_label = 'positive'
+                confidence = max(0.4, coverage * 0.6 + strength * 0.4)
+            elif normalized_score < -0.1:
+                sentiment_label = 'negative'
+                confidence = max(0.4, coverage * 0.6 + strength * 0.4)
+            else:
+                sentiment_label = 'neutral'
+                confidence = min(coverage * 0.8, 0.7)
+            
+            if positive_scores and negative_scores and not is_balanced:
+                confidence *= 0.9
+            if sentiment_label == 'neutral':
+                confidence = min(confidence, 0.7)
+            
+            return {
+                'sentiment_score': total_sentiment,
+                'normalized_score': normalized_score,
+                'confidence': min(confidence, 0.95),
+                'sentiment_label': sentiment_label,
+                'positive_words': [w for w, s in word_scores.items() if s > 0],
+                'negative_words': [w for w, s in word_scores.items() if s < 0],
+                'word_scores': word_scores,
+                'phrase_score': phrase_score,
+                'mod_score': mod_score
+            }

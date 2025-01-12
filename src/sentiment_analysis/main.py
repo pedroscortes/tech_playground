@@ -1,6 +1,7 @@
 from pathlib import Path
 from analyzer.sentiment import SentimentAnalyzer
-from analyzer.utils import load_feedback_data, save_sentiment_results, print_analysis_summary
+from analyzer.utils import load_feedback_data, save_sentiment_results
+from analyzer.reporting import SentimentReport
 import pandas as pd
 from tqdm import tqdm
 
@@ -60,7 +61,7 @@ def main():
     results_df = pd.DataFrame(all_results)
     save_sentiment_results(results_df, db_path)
     
-    print("\nOverall Analysis Summary:")
+    print("\nBasic Analysis Summary:")
     print("-" * 50)
     print(f"Total comments analyzed: {len(all_results)}")
     
@@ -83,6 +84,11 @@ def main():
             count = field_summary.loc[field, sentiment]
             pct = count/field_total[field]*100
             print(f"{sentiment}: {count} ({pct:.1f}%)")
+    
+    print("\nGenerating Enhanced Analysis Report...")
+    print("=" * 80)
+    reporter = SentimentReport(db_path)
+    reporter.print_enhanced_summary()
     
     print("\nAnalysis complete! Results saved to database.")
 
