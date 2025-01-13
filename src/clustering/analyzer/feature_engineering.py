@@ -15,17 +15,13 @@ class FeatureEngineer:
     """
     
     def __init__(self, text_max_features: int = 100):
-        """
-        Initialize the FeatureEngineer.
-        
-        Args:
-            text_max_features (int): Maximum number of text features to extract
-        """
+        """Initialize with configurable max features"""
         self.text_max_features = text_max_features
         self.tfidf_vectorizer = TfidfVectorizer(
-            max_features=text_max_features,
+            max_features=text_max_features,   
             stop_words='english',
-            ngram_range=(1, 2)
+            ngram_range=(1, 2),
+            min_df=1  
         )
         self.scaler = StandardScaler()
         
@@ -54,21 +50,20 @@ class FeatureEngineer:
         return sentiment_features
     
     def create_text_features(self, sentiment_results: pd.DataFrame) -> pd.DataFrame:
-        """
-        Create features from text data using TF-IDF.
-        
-        Args:
-            sentiment_results: DataFrame containing text data
-            
-        Returns:
-            DataFrame containing text-based features
-        """
+        """Create features from text data using TF-IDF."""
         text_by_employee = sentiment_results.groupby('employee_id')['original_text'].apply(' '.join)
+        
         text_features = pd.DataFrame(
-            self.tfidf_vectorizer.fit_transform(text_by_employee).toarray(),
+            0.0,  
             index=text_by_employee.index,
-            columns=[f'text_feature_{i}' for i in range(self.text_max_features)]
+            columns=[f'text_feature_{i}' for i in range(self.text_max_features)],
+            dtype=np.float64
         )
+        
+        transformed = self.tfidf_vectorizer.fit_transform(text_by_employee)
+        actual_features = transformed.toarray()
+        
+        text_features.iloc[:, :actual_features.shape[1]] = actual_features
         
         return text_features
     

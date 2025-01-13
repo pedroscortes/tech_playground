@@ -72,36 +72,43 @@ class ClusterVisualizer:
         clusters: np.ndarray,
         title: Optional[str] = None
     ) -> go.Figure:
-        """
-        Create a scatter plot using PCA for dimensionality reduction.
+        """Create a scatter plot using PCA for dimensionality reduction."""
+        if len(features) != len(clusters):
+            raise ValueError("Features and clusters must have the same length")
         
-        Args:
-            features: Feature array
-            clusters: Cluster assignments
-            title: Plot title
-            
-        Returns:
-            Plotly figure object
-        """
+        if len(features.shape) == 1:
+            features = features.reshape(-1, 1)
+        
         pca = PCA(n_components=2)
         embedding = pca.fit_transform(features)
         
-        explained_var = pca.explained_variance_ratio_ * 100
+        n_clusters = len(np.unique(clusters))
+        cluster_colors = {str(i): self.color_sequence[i % len(self.color_sequence)] 
+                        for i in range(n_clusters)}
+        colors = [cluster_colors[str(c)] for c in clusters]
         
-        fig = px.scatter(
+        fig = go.Figure()
+        
+        fig.add_trace(go.Scatter(
             x=embedding[:, 0],
             y=embedding[:, 1],
-            color=clusters.astype(str),
-            title=title or "Cluster Visualization (PCA)",
-            labels={
-                'x': f'PC1 ({explained_var[0]:.1f}% variance)',
-                'y': f'PC2 ({explained_var[1]:.1f}% variance)'
-            },
-            color_discrete_sequence=self.color_sequence
-        )
+            mode='markers',
+            marker=dict(
+                color=colors,
+                size=8
+            ),
+            text=[f'Cluster {c}' for c in clusters],
+            hovertemplate='%{text}<br>PC1: %{x:.2f}<br>PC2: %{y:.2f}<extra></extra>'
+        ))
         
-        fig.update_traces(marker=dict(size=8))
-        fig.update_layout(template=self.template)
+        explained_var = pca.explained_variance_ratio_ * 100
+        fig.update_layout(
+            title=title or "Cluster Visualization (PCA)",
+            xaxis_title=f'PC1 ({explained_var[0]:.1f}% variance)',
+            yaxis_title=f'PC2 ({explained_var[1]:.1f}% variance)',
+            template=self.template,
+            showlegend=False
+        )
         
         return fig
     
@@ -272,7 +279,7 @@ class ClusterVisualizer:
         risk_scores: pd.DataFrame,
         employee_data: pd.DataFrame,
         importance_by_cluster: Dict[int, List[Tuple[str, float]]]
-    ) -> None:
+    ) -> bool:
         """
         Create and display a comprehensive dashboard of visualizations.
         
@@ -282,17 +289,25 @@ class ClusterVisualizer:
             risk_scores: DataFrame containing risk scores
             employee_data: DataFrame containing employee information
             importance_by_cluster: Dictionary of feature importance by cluster
+            
+        Returns:
+            bool: True if dashboard creation was successful, False otherwise
         """
-        print("Creating visualization dashboard...")
-        
-        self.plot_cluster_distribution(clusters).show()
-        
-        self.plot_dimension_reduction(features, clusters).show()
-        
-        self.plot_feature_importance(importance_by_cluster).show()
-        
-        radar_fig, box_fig = self.plot_risk_profiles(risk_scores, clusters)
-        radar_fig.show()
-        box_fig.show()
-        
-        self.plot_demographic_distribution(employee_data, clusters).show()
+        try:
+            print("Creating visualization dashboard...")
+            
+            self.plot_cluster_distribution(clusters).show()
+            self.plot_dimension_reduction(features, clusters).show()
+            self.plot_feature_importance(importance_by_cluster).show()
+            
+            radar_fig, box_fig = self.plot_risk_profiles(risk_scores, clusters)
+            radar_fig.show()
+            box_fig.show()
+            
+            self.plot_demographic_distribution(employee_data, clusters).show()
+            
+            return True
+            
+        except Exception as e:
+            print(f"Dashboard creation failed: {str(e)}")
+            return False

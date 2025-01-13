@@ -44,23 +44,65 @@ class PersonaGenerator:
             text_data: List of text comments
             
         Returns:
-            List of key terms ordered by frequency
+            List of key terms ordered by importance
         """
         if not text_data or not any(text_data):
             return []
         
-        text = ' '.join(str(t) for t in text_data if pd.notna(t))
+        text = ' '.join(str(t).lower() for t in text_data if pd.notna(t))
         if not text.strip():
             return []
-            
+        
         try:
-            term_matrix = self.vectorizer.fit_transform([text])
-            terms = self.vectorizer.get_feature_names_out()
+            vectorizer = CountVectorizer(
+                stop_words='english',
+                ngram_range=(1, 2),  
+                min_df=1,           
+                max_df=1.0,         
+                token_pattern=r'(?u)\b\w+\b'  
+            )
+            
+            augmented_text = []
+            
+            augmented_text.append(text)
+            
+            sentences = [s.strip() for s in text.split('.') if s.strip()]
+            augmented_text.extend(sentences)
+            
+            final_text = ' . '.join(augmented_text)
+            
+            term_matrix = vectorizer.fit_transform([final_text])
+            terms = vectorizer.get_feature_names_out()
             term_freq = term_matrix.toarray()[0]
             
-            top_terms = [terms[i] for i in term_freq.argsort()[-self.n_terms:][::-1]]
-            return top_terms
-        except Exception:
+            term_scores = []
+            for term, freq in zip(terms, term_freq):
+                length_boost = len(term.split())  
+                freq_score = freq * (1 + 0.5 * length_boost)
+                
+                if ' ' in term and any(part == term for part in term.split()):
+                    freq_score *= 1.2
+                    
+                term_scores.append((term, freq_score))
+            
+            term_scores.sort(key=lambda x: (-x[1], x[0]))
+            
+            selected_terms = []
+            seen_words = set()
+            
+            for term, _ in term_scores:
+                if len(selected_terms) >= self.n_terms:
+                    break
+                    
+                term_words = set(term.split())
+                if not term_words.intersection(seen_words):
+                    selected_terms.append(term)
+                    seen_words.update(term_words)
+            
+            return selected_terms
+            
+        except Exception as e:
+            print(f"Error extracting terms: {str(e)}")
             return []
     
     def calculate_sentiment_profile(

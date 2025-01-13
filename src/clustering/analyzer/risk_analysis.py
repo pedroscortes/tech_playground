@@ -106,48 +106,29 @@ class RiskAnalyzer:
         avg_feedback = feedback_counts.mean()
         return 1 - (feedback_counts / avg_feedback).clip(0, 1)
     
-    def calculate_tenure_risk(
-        self,
-        features: pd.DataFrame
-    ) -> pd.Series:
-        """
-        Calculate risk based on employee tenure.
-        
-        Args:
-            features: DataFrame containing employee features
-            
-        Returns:
-            Series of tenure risk scores by employee
-        """
+    def calculate_tenure_risk(self, features: pd.DataFrame) -> pd.Series:
+        """Calculate risk based on employee tenure."""
         tenure_columns = [col for col in features.columns if col.startswith('tenure_')]
         if not tenure_columns:
             return pd.Series(0, index=features.index)
         
+        tenure_weights = {
+            'tenure_0_1_year': 1.0,
+            'tenure_1_2_years': 0.8,
+            'tenure_2_5_years': 0.6,
+            'tenure_5_10_years': 0.4,
+            'tenure_more_10_years': 0.2
+        }
+        
         tenure_risk = pd.Series(0, index=features.index)
         for col in tenure_columns:
-            category = col.replace('tenure_', '')
-            if category in self.tenure_weights:
-                tenure_risk += features[col] * self.tenure_weights[category]
+            if col in tenure_weights:
+                tenure_risk += features[col].astype(float) * tenure_weights[col]
         
         return tenure_risk
     
-    def calculate_risk_scores(
-        self,
-        features: pd.DataFrame,
-        sentiment_results: pd.DataFrame,
-        clusters: np.ndarray
-    ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-        """
-        Calculate comprehensive risk scores.
-        
-        Args:
-            features: DataFrame containing employee features
-            sentiment_results: DataFrame containing sentiment analysis results
-            clusters: Array of cluster assignments
-            
-        Returns:
-            Tuple of (risk scores DataFrame, cluster risk summary DataFrame)
-        """
+    def calculate_risk_scores(self, features: pd.DataFrame, sentiment_results: pd.DataFrame, clusters: np.ndarray) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """Calculate comprehensive risk scores."""
         try:
             print("Calculating risk scores...")
             
@@ -166,20 +147,9 @@ class RiskAnalyzer:
             
             risk_scores['cluster'] = clusters
             
-            cluster_risks = risk_scores.groupby('cluster').agg({
-                'overall_risk': ['mean', 'std', 'min', 'max'],
-                'sentiment_risk': 'mean',
-                'confidence_risk': 'mean',
-                'volatility_risk': 'mean',
-                'engagement_risk': 'mean',
-                'tenure_risk': 'mean'
-            })
-            
-            print("\nRisk Analysis Summary:")
-            print(f"Overall Risk - Mean: {risk_scores['overall_risk'].mean():.3f}")
-            print(f"Overall Risk - Std: {risk_scores['overall_risk'].std():.3f}")
-            print("\nCluster Risk Summary:")
-            print(cluster_risks['overall_risk'].round(3))
+            cluster_risks = pd.DataFrame()
+            for metric in ['mean', 'std', 'min', 'max']:
+                cluster_risks[metric] = risk_scores.groupby('cluster')['overall_risk'].agg(metric)
             
             return risk_scores, cluster_risks
             
@@ -192,19 +162,14 @@ class RiskAnalyzer:
         cluster_risks: pd.DataFrame,
         threshold_std: float = 1.0
     ) -> List[int]:
-        """
-        Identify high-risk clusters based on mean risk scores.
-        
-        Args:
-            cluster_risks: DataFrame containing cluster risk metrics
-            threshold_std: Number of standard deviations above mean to consider high risk
-            
-        Returns:
-            List of high-risk cluster IDs
-        """
-        mean_risks = cluster_risks['overall_risk']['mean']
-        threshold = mean_risks.mean() + (mean_risks.std() * threshold_std)
-        return mean_risks[mean_risks > threshold].index.tolist()
+        """Identify high-risk clusters based on mean risk scores."""
+        try:
+            mean_risks = cluster_risks.loc[:, 'mean']
+            threshold = mean_risks.mean() + (mean_risks.std() * threshold_std)
+            return mean_risks[mean_risks > threshold].index.tolist()
+        except Exception as e:
+            print(f"Error identifying high risk clusters: {str(e)}")
+            return []
     
     def plot_risk_distribution(
         self,
