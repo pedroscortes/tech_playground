@@ -1,384 +1,321 @@
-# Tech Playground Challenge
+# Tech Playground - Employee Feedback Analysis
 
-Welcome to the **Tech Playground Challenge**!
+## Overview
+This project implements a comprehensive employee feedback analysis system, focusing on data storage, exploratory analysis, sentiment analysis in Portuguese, and advanced clustering techniques for employee segmentation. The implementation uses Python, SQLite, and various machine learning libraries to derive actionable insights from employee survey responses.
 
-## About the Challenge
+## Selected Tasks Summary
+From the available tasks, the following were implemented:
+- [x] **Task 1**: SQLite Database Implementation
+- [x] **Task 5**: Exploratory Data Analysis
+- [x] **Task 10**: Sentiment Analysis for Portuguese Text
+- [x] **Task 12**: Employee Clustering and Risk Analysis
 
-This is your opportunity to dive into a real-world dataset and create something extraordinary. Whether you're passionate about data analysis, visualization, backend development, or creative exploration, there's a task here that's perfect for you. Choose the challenges that excite you and let your skills shine!
-
-## How to Participate
-
-- **Choose Your Tasks**: Pick any tasks from the checklist below that spark your interest. You're free to choose as many or as few as you like.
-- **Showcase Your Skills**: Focus on creating high-quality, well-thought-out solutions.
-- **Use Your Favorite Tools**: Feel free to use any programming languages, frameworks, or tools you're comfortable with.
-
-## Dataset Overview
-
-The provided dataset (`data.csv`) contains employee feedback data with fields in Portuguese. The data includes:
-
-- **nome** (Name)
-- **email**
-- **email_corporativo** (Corporate Email)
-- **celular** (Mobile Phone)
-- **area** (Department)
-- **cargo** (Position)
-- **funcao** (Function)
-- **localidade** (Location)
-- **tempo_de_empresa** (Company Tenure)
-- **genero** (Gender)
-- **geracao** (Generation)
-- **n0_empresa** (Company Level 0)
-- **n1_diretoria** (Directorate Level 1)
-- **n2_gerencia** (Management Level 2)
-- **n3_coordenacao** (Coordination Level 3)
-- **n4_area** (Area Level 4)
-- **Data da Resposta** (Response Date)
-- **Interesse no Cargo** (Interest in Position)
-- **Comentários - Interesse no Cargo** (Comments - Interest in Position)
-- **Contribuição** (Contribution)
-- **Comentários - Contribuição** (Comments - Contribution)
-- **Aprendizado e Desenvolvimento** (Learning and Development)
-- **Comentários - Aprendizado e Desenvolvimento** (Comments - Learning and Development)
-- **Feedback**
-- **Comentários - Feedback** (Comments - Feedback)
-- **Interação com Gestor** (Interaction with Manager)
-- **Comentários - Interação com Gestor** (Comments - Interaction with Manager)
-- **Clareza sobre Possibilidades de Carreira** (Clarity about Career Opportunities)
-- **Comentários - Clareza sobre Possibilidades de Carreira** (Comments - Clarity about Career Opportunities)
-- **Expectativa de Permanência** (Expectation of Permanence)
-- **Comentários - Expectativa de Permanência** (Comments - Expectation of Permanence)
-- **eNPS** (Employee Net Promoter Score)
-- **[Aberta] eNPS** (Open Comments - eNPS)
-
-**Note**: Since the data is in Portuguese, you may need to handle text processing accordingly, especially for tasks involving text analysis or sentiment analysis.
-
-## Key Concepts
-
-This section explains key concepts related to the dataset to ensure you have a clear understanding of the terms used:
-
-### 1. **Likert Scale**
-The Likert scale is a common way to measure attitudes or opinions. Respondents are typically asked to rate their agreement or disagreement with a statement on a scale (we use a range from 1 to 5). For example:
-- 1: Strongly Disagree
-- 2: Disagree
-- 3: Neutral
-- 4: Agree
-- 5: Strongly Agree
-
-In this dataset, Likert scales are used to capture feedback on various aspects, such as career clarity, manager interaction, and learning opportunities.
-
----
-
-### 2. **Favorability**
-Favorability measures the percentage of positive responses to a survey question. For example:
-- On a 5-point Likert scale:
-  - Responses of 4 (Agree) and 5 (Strongly Agree) are considered favorable.
-  - Responses of 3 (Neutral) are considered neutral.
-  - Responses of 1 (Strongly Disagree) and 2 (Disagree) are considered unfavorable.
-
-Favorability helps identify areas where employees feel positively about their experience.
-
----
-
-### 3. **Net Promoter Score (NPS)**
-NPS is a metric used to measure loyalty and satisfaction, often represented as a single number between -100 and 100. It is based on responses to the question: 
-*"On a scale from 0 to 10, how likely are you to recommend this company as a great place to work?"*
-- Respondents are categorized as:
-  - **Promoters** (9-10): Loyal enthusiasts who will recommend the company.
-  - **Passives** (7-8): Neutral respondents.
-  - **Detractors** (0-6): Unhappy respondents who may discourage others.
-- **Calculation**:  
-
-```
-NPS = (% Promoters) - (% Detractors)
+## Project Structure
+```tree
+tech_playground/
+├── data/
+│   ├── raw/                    # Original dataset
+│   │   └── data.csv           # Employee feedback data
+│   └── processed/              # Processed data
+│       └── employee_feedback.db # SQLite database
+├── notebooks/
+│   ├── eda.ipynb              # Exploratory Data Analysis
+│   └── task_12_exploration.ipynb # Clustering Analysis (POC)
+├── sql/
+│   └── schema.sql             # Database schema
+├── src/
+│   ├── clustering/            # Employee clustering implementation
+│   │   ├── analyzer/
+│   │   │   ├── cluster_analysis.py
+│   │   │   ├── feature_engineering.py
+│   │   │   ├── personas.py
+│   │   │   ├── risk_analysis.py
+│   │   │   ├── utils.py
+│   │   │   └── visualization.py
+│   │   ├── tests/            # Unit tests
+│   │   └── main.py
+│   ├── database/             # Database operations
+│   │   ├── connection.py
+│   │   ├── import_data.py
+│   │   └── verify_import.py
+│   └── sentiment_analysis/   # Sentiment analysis
+│       ├── analyzer/
+│       │   ├── preprocessor.py
+│       │   ├── sentiment.py
+│       │   └── utils.py
+│       ├── tests/
+│       └── main.py
+├── .gitignore
+├── requirements.txt
+└── README.md
 ```
 
-NPS provides insight into overall employee sentiment in a scale from -100 (100% Detractors) to +100 (100% Promoters) where the higher the better.
+## Setup and Installation
 
----
+### Prerequisites
+- Python 3.9+
+- SQLite3
+- Git
 
-### 4. **Survey Conversion**
-Survey conversion refers to the percentage of employees who completed the survey out of those who were invited to participate. For example:
-- If 500 employees were invited and 350 completed the survey, the conversion rate is:
+### Installation Steps
 
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/tech_playground.git
+cd tech_playground
 ```
-Conversion Rate = (350 / 500) * 100 = 70%
+
+2. Create and activate virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-A high conversion rate indicates good participation and engagement with the survey process.
-
----
-
-### How These Concepts Apply
-These metrics are essential to understanding the dataset and deriving actionable insights. As you work through the challenge, consider how Likert-scale responses, Favorability, NPS, and survey conversion reflect employee sentiment and help inform decision-making.
-
----
-
-## Task Checklist
-
-Select the tasks you wish to complete by marking them with an `X` in the `[ ]` brackets.
-
-### **Your Selected Tasks**
-
-- [ ] **Task 1**: Create a Basic Database
-- [ ] **Task 2**: Create a Basic Dashboard
-- [ ] **Task 3**: Create a Test Suite
-- [ ] **Task 4**: Create a Docker Compose Setup
-- [ ] **Task 5**: Exploratory Data Analysis
-- [ ] **Task 6**: Data Visualization - Company Level
-- [ ] **Task 7**: Data Visualization - Area Level
-- [ ] **Task 8**: Data Visualization - Employee Level
-- [ ] **Task 9**: Build a Simple API
-- [ ] **Task 10**: Sentiment Analysis
-- [ ] **Task 11**: Report Generation
-- [ ] **Task 12**: Creative Exploration
-
----
-
-## Task Descriptions
-
-### **Task 1: Create a Basic Database**
-
-**Objective**: Design and implement a database to structure the data from the CSV file.
-
-**Requirements**:
-
-- Choose an appropriate database system (relational or non-relational) such as MySQL, PostgreSQL, MongoDB, etc.
-- Design a schema or data model that accurately represents the data, considering the Portuguese field names.
-- Write scripts or use tools to import the CSV data into the database.
-- Ensure data integrity and appropriate data types for each field.
-- Provide database creation scripts or configurations and instructions on how to set it up.
-
-**Bonus**:
-
-- Implement indexing or other optimizations for faster query performance.
-- Organize the data efficiently to reduce redundancy and improve access speed.
-
----
-
-### **Task 2: Create a Basic Dashboard**
-
-**Objective**: Develop a simple dashboard to display important data insights.
-
-**Requirements**:
-
-- Use any frontend technology (e.g., HTML/CSS, JavaScript, React, Angular, Vue.js).
-- Connect the dashboard to your database or use the CSV file directly.
-- Display key metrics such as:
-
-  - Number of employees per department (**area**).
-  - Average feedback scores.
-  - eNPS distribution.
-
-- Include interactive elements like filtering by department (**area**) or position (**cargo**).
-- Ensure the dashboard is user-friendly and visually appealing.
-
-**Bonus**:
-
-- Implement responsive design for mobile compatibility.
-- Add advanced visualizations using charting libraries (e.g., D3.js, Chart.js).
-
----
-
-### **Task 3: Create a Test Suite**
-
-**Objective**: Write tests to ensure the reliability and correctness of your codebase.
-
-**Requirements**:
-
-- Use a testing framework relevant to your chosen language (e.g., pytest for Python, JUnit for Java, Jest for JavaScript).
-- Write unit tests for key functions or components.
-- Include tests for edge cases and error handling.
-- Provide instructions on how to run the tests.
-
-**Bonus**:
-
-- Achieve high code coverage.
-- Implement integration tests to test interactions between components.
-
----
-
-### **Task 4: Create a Docker Compose Setup**
-
-**Objective**: Containerize your application and its services using Docker Compose.
-
-**Requirements**:
-
-- Write a `Dockerfile` for your application.
-- Create a `docker-compose.yml` file to define services (e.g., application server, database).
-- Ensure that running `docker-compose up` sets up the entire environment.
-- Provide instructions on how to build and run the containers.
-
-**Bonus**:
-
-- Use environment variables for configuration.
-- Implement multi-stage builds to optimize image size.
-
----
-
-### **Task 5: Exploratory Data Analysis**
-
-**Objective**: Analyze the dataset to extract meaningful insights.
-
-**Requirements**:
-
-- Compute summary statistics (mean, median, mode, etc.) for numerical fields.
-- Identify trends or patterns (e.g., average feedback scores by department (**area**)).
-- Visualize key findings using charts or graphs.
-- Provide a brief report summarizing your insights.
-
----
-
-### **Task 6: Data Visualization - Company Level**
-
-**Objective**: Create visualizations that provide insights at the company-wide level.
-
-**Requirements**:
-
-- Develop at least two visualizations that represent data across the entire company.
-- Examples include:
-
-  - Overall employee satisfaction scores.
-  - Company-wide eNPS scores.
-  - Distribution of company tenure among all employees.
-
-- Ensure visualizations are clear, labeled, and easy to understand.
-- Explain what each visualization reveals about the company.
-
-**Bonus**:
-
-- Use interactive dashboards or advanced visualization techniques.
-- Incorporate time-series analysis if temporal data is available.
-
----
-
-### **Task 7: Data Visualization - Area Level**
-
-**Objective**: Create visualizations focusing on specific areas or departments within the company.
-
-**Requirements**:
-
-- Develop at least two visualizations that provide insights at the area or department level.
-- Examples include:
-
-  - Average feedback scores by department (**area**).
-  - eNPS scores segmented by department.
-  - Comparison of career expectations across different areas.
-
-- Include interactive elements such as filtering or hovering to display more information.
-- Ensure visualizations are clear, labeled, and easy to understand.
-- Explain what each visualization reveals about the different areas.
-
-**Bonus**:
-
-- Highlight significant differences or trends between departments.
-- Suggest possible reasons for observed patterns based on the data.
-
----
-
-### **Task 8: Data Visualization - Employee Level**
-
-**Objective**: Create visualizations that focus on individual employee data.
-
-**Requirements**:
-
-- Develop visualizations that provide insights at the employee level.
-- Examples include:
-
-  - An individual employee's feedback scores across different categories.
-  - A profile visualization summarizing an employee's tenure, position, and feedback.
-  - Comparison of an employee's scores to department or company averages.
-
-- Ensure privacy considerations are met (e.g., anonymize data if necessary).
-- Explain how these visualizations can be used for employee development or management.
-
-**Bonus**:
-
-- Create a template that can generate individual reports for any employee.
-- Include recommendations or action items based on the data.
-
----
-
-### **Task 9: Build a Simple API**
-
-**Objective**: Develop an API to serve data from the dataset.
-
-**Requirements**:
-
-- Implement at least one endpoint that returns data in JSON format.
-- Use any framework or language you're comfortable with.
-- Include instructions on how to run and test the API.
-
-**Bonus**:
-
-- Implement multiple endpoints for different data queries.
-- Include pagination or filtering options.
-
----
-
-### **Task 10: Sentiment Analysis**
-
-**Objective**: Perform sentiment analysis on the comment fields.
-
-**Requirements**:
-
-- Preprocess the text data (e.g., tokenization, stop-word removal).
-- Use any method or library to analyze sentiment in Portuguese (e.g., NLTK with Portuguese support, spaCy with Portuguese models).
-- Summarize the overall sentiment and provide examples.
-- Document your approach and findings.
-
-**Note**: Since the comments are in Portuguese, ensure that your tools and methods support processing text in Portuguese.
-
----
-
-### **Task 11: Report Generation**
-
-**Objective**: Generate a report highlighting key aspects of the data.
-
-**Requirements**:
-
-- Include tables, charts, or graphs to support your findings.
-- Summarize important metrics like eNPS scores or feedback trends.
-- The report can be in any format (PDF, Markdown, HTML).
-
----
-
-### **Task 12: Creative Exploration**
-
-**Objective**: Explore the dataset in a way that interests you.
-
-**Requirements**:
-
-- Pose a question or hypothesis related to the data.
-- Use the data to answer the question or test the hypothesis.
-- Document your process, findings, and any conclusions drawn.
-
----
-
-## Getting Started
-
-1. **Download the Dataset**: Access `data.csv` from the repository.
-2. **Choose Your Adventure**: Pick the tasks that excite you and mark them in the checklist above.
-3. **Create Your Masterpiece**: Develop your solutions using your preferred tools and technologies.
-4. **Share Your Work**: Organize your code and documentation, and get ready to showcase what you've built.
-5. **Attention**: Ensure that no sensitive information (e.g., API keys, personal data) is included in your repository.
-
-## Submission Guidelines
-
-- **Create a New Repository**: Use a platform such as GitHub, GitLab, or Bitbucket to host your repository.
-- **Code and Files**: Include all code, scripts, and other files used in your solution.
-- **README**: Provide a README file that:
-  - Lists the tasks you completed.
-  - Explains how to run your code and view results.
-  - Discusses any assumptions or decisions you made.
-- **Documentation**: Include any reports or visualizations you created.
-- **Instructions**: Provide clear instructions for setting up and running your project.
-- **Share you repository**: Provide the link to your repository as per the submission instructions provided.
-
-
-## Let Your Creativity Flow!
-
-This is more than just a challenge—it's a playground for your ideas. Feel free to go beyond the tasks, add your own flair, and have fun exploring the possibilities!
-
----
-
-We hope you enjoy this challenge and look forward to seeing the amazing things you create. Happy coding!
+3. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+## Task Implementations
+
+### Task 1: Database Implementation
+
+#### Original Task Description
+Design and implement a database to structure the data from the CSV file. Requirements include choosing an appropriate database system, designing a schema, writing import scripts, and ensuring data integrity.
+
+#### Implementation Details
+- **Database Choice**: SQLite
+  - Chosen for portability and ease of setup
+  - Suitable for the dataset size
+  - No separate server required
+  - Native Python support
+
+#### Schema Design
+```sql
+CREATE TABLE departments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE NOT NULL
+);
+
+CREATE TABLE employees (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    corporate_email TEXT UNIQUE NOT NULL,
+    department_id INTEGER REFERENCES departments(id),
+    position_id INTEGER REFERENCES positions(id),
+    role TEXT NOT NULL,
+    location_id INTEGER REFERENCES locations(id),
+    company_tenure TEXT NOT NULL,
+    gender TEXT,
+    generation TEXT,
+    org_unit_id INTEGER REFERENCES organizational_units(id)
+);
+
+-- Additional tables and indexes defined in schema.sql
+```
+
+#### Technical Decisions
+
+1. **Data Normalization**:
+   - Separate tables for departments, positions, locations
+   - Organizational hierarchy structure
+   - Foreign key constraints for data integrity
+
+2. **Performance Optimization**:
+```sql
+CREATE INDEX idx_feedback_employee ON feedback_responses(employee_id);
+CREATE INDEX idx_feedback_date ON feedback_responses(response_date);
+CREATE INDEX idx_employee_department ON employees(department_id);
+```
+
+3. **Data Import Pipeline**:
+   - Transaction-based imports
+   - Error handling and logging
+   - Data validation steps
+
+#### Running Instructions
+
+1. Initialize database:
+```bash
+python -m src.database.import_data
+```
+
+2. Verify import:
+```bash
+python -m src.database.verify_import
+```
+
+### Task 5: Exploratory Data Analysis
+
+#### Original Task Description
+Analyze the dataset to extract meaningful insights, compute summary statistics, identify trends, and visualize key findings.
+
+#### Implementation Details
+- Comprehensive statistical analysis using pandas and numpy
+- Visualization with matplotlib and seaborn
+- Hypothesis testing for key metrics
+- Correlation analysis
+
+#### Technical Approach
+
+1. **Data Loading and Cleaning**:
+```python
+query = """
+SELECT 
+    e.*, d.name as department, p.title as position,
+    f.*
+FROM employees e
+JOIN departments d ON e.department_id = d.id
+JOIN positions p ON e.position_id = p.id
+JOIN feedback_responses f ON e.id = f.employee_id
+"""
+```
+
+2. **Analysis Components**:
+   - Demographic distribution
+   - Satisfaction metrics
+   - Department comparisons
+   - Correlation analysis
+   - Statistical testing
+
+#### Running Instructions
+```bash
+jupyter notebook notebooks/eda.ipynb
+```
+
+### Task 10: Sentiment Analysis
+
+#### Original Task Description
+Perform sentiment analysis on Portuguese comment fields, with preprocessing, sentiment analysis, and result summarization.
+
+#### Implementation Details
+
+1. **Text Preprocessing**:
+   - Custom Portuguese text normalization
+   - Context-aware negation handling
+   - Domain-specific stopwords
+
+2. **Sentiment Analysis Engine**:
+```python
+class SentimentAnalyzer:
+    def __init__(self):
+        self.preprocessor = TextPreprocessor()
+        self.sentiment_dict = {
+            'positivo': 1,
+            'excelente': 2,
+            'otimo': 2,
+            'bom': 1,
+            'satisfeito': 1.5,
+            'negativo': -1,
+            'ruim': -1.5,
+            'pessimo': -2,
+            'insatisfeito': -1.5
+        }
+```
+
+3. **Performance Features**:
+   - Confidence scoring
+   - Multi-field analysis
+   - Detailed reporting
+   - Context-aware sentiment modification
+
+#### Running Instructions
+```bash
+python -m src.sentiment_analysis.main
+```
+
+### Task 12: Employee Clustering
+
+#### Original Task Description
+Creative exploration of the dataset using clustering techniques to identify employee patterns and risk factors.
+
+#### Implementation Details
+
+1. **Feature Engineering**:
+   - Sentiment features (9 components)
+   - Text features using TF-IDF (100 dimensions)
+   - Temporal patterns (11 features)
+   - Categorical encodings (24 features)
+
+2. **Clustering Analysis**:
+   - Optimal clusters: 9 (determined by validation metrics)
+   - PCA for dimensionality reduction
+   - Risk scoring system
+   - Interactive visualizations
+
+#### Key Findings
+
+1. **Cluster Characteristics**:
+```text
+Cluster 7 (High Performers):
+- Size: 16 employees
+- Positive sentiment: 82%
+- High confidence: 68%
+- Key terms: "comunicação entre", "e colaborativa"
+- Top Department: Balanced across all
+- Generation: Equal Y and Z distribution
+
+Cluster 5 (Risk Group):
+- Size: 33 employees
+- Negative sentiment: 53%
+- Higher risk scores (0.35-0.45)
+- Key terms: "há falta", "oportunidades"
+- Generation: 76% Generation Z
+- Position: 39% Interns
+
+Cluster 8 (Largest Group):
+- Size: 133 employees
+- Positive sentiment: 45%
+- Balanced risk profile
+- Key terms: "empresa", "oferece", "ambiente"
+- Even department distribution
+- Mixed tenure profile
+```
+
+2. **Risk Distribution**:
+   - High risk cluster (5): 0.35-0.45 risk score
+   - Low risk cluster (7): 0.10-0.15 risk score
+   - Average cluster risk: 0.15-0.25
+
+3. **Validation Metrics**:
+   - Silhouette Score: 0.12 for 9 clusters
+   - Calinski-Harabasz Score: 19.5
+   - Davies-Bouldin Score: 2.5
+
+#### Running Instructions
+```bash
+python -m src.clustering.main --db-path data/processed/employee_feedback.db --output-dir results
+```
+
+## Testing
+
+Run tests for each module:
+```bash
+# Run all tests
+python -m unittest discover src -v
+
+# Run specific test suite
+python -m unittest src/clustering/tests/test_feature_engineering.py
+```
+
+## Future Improvements
+1. Real-time analysis capabilities
+   - Streaming data processing
+   - Live dashboard updates
+   - Automated alerts for risk patterns
+
+2. Advanced NLP features
+   - Deep learning models for text analysis
+   - Topic modeling
+   - Enhanced sentiment analysis
+
+3. API implementation
+   - RESTful endpoints
+   - Authentication system
+   - Rate limiting and caching
+
+4. Automated reporting system
+   - Scheduled reports
+   - Custom dashboards
+   - Email notifications
