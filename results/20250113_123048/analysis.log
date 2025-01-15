@@ -1,0 +1,5 @@
+2025-01-13 12:30:48,205 - INFO - Step: Starting analysis
+2025-01-13 12:30:48,207 - INFO - Step: Loading data
+2025-01-13 12:30:48,274 - INFO - Step: Validating data
+2025-01-13 12:30:48,275 - INFO - Step: Creating features
+2025-01-13 12:30:48,642 - INFO - Step: Performing clustering
